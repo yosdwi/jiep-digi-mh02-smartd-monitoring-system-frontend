@@ -1,0 +1,82 @@
+.infoContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.titleWrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.unitHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.unitModel {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--color-text-primary);
+}
+
+.statusBadge {
+  background: var(--color-primary);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.onlineStatus {
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.online {
+  background: #10b981;
+  color: white;
+}
+
+.offline {
+  background: #ef4444;
+  color: white;
+}
+
+.lastUpdate {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  margin: 0.25rem 0 0;
+  opacity: 0.8;
+}
+
+.details {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  margin: 0.25rem 0 0;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.closeButton:hover {
+  opacity: 1;
+}

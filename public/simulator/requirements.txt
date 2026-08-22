@@ -1,0 +1,5 @@
+# This file lists the Python packages required by the device simulator.
+# Install them using pip:
+# pip install -r requirements.txt
+
+websockets

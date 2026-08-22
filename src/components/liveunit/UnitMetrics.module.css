@@ -1,0 +1,48 @@
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  padding: 12px 16px;
+}
+
+.metricCard {
+  background-color: #2c3038;
+  border-radius: 8px;
+  padding: 8px 12px;
+  border: 1px solid #3a3f4b;
+  transition: background-color 0.3s ease;
+}
+
+.metricCard.highlight {
+  background-color: #1b4b35; /* Latar belakang hijau gelap untuk highlight */
+  border-color: #2e7d32;
+}
+
+.label {
+  display: block;
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: #9ea7b8;
+  margin-bottom: 2px;
+  text-transform: uppercase;
+}
+
+.valueContainer {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.value {
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: #ffffff;
+  line-height: 1;
+}
+
+.unit {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #9ea7b8;
+  line-height: 1;
+}

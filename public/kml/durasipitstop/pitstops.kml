@@ -1,0 +1,562 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>polygons CS dan PS BRCB</name>
+    <Style id="poly-FF0000-1000-0-normal">
+      <LineStyle>
+        <color>ff0000ff</color>
+        <width>1</width>
+      </LineStyle>
+      <PolyStyle>
+        <color>000000ff</color>
+        <fill>1</fill>
+        <outline>1</outline>
+      </PolyStyle>
+    </Style>
+    <Style id="poly-FF0000-1000-0-highlight">
+      <LineStyle>
+        <color>ff0000ff</color>
+        <width>1.5</width>
+      </LineStyle>
+      <PolyStyle>
+        <color>000000ff</color>
+        <fill>1</fill>
+        <outline>1</outline>
+      </PolyStyle>
+    </Style>
+    <StyleMap id="poly-FF0000-1000-0">
+      <Pair>
+        <key>normal</key>
+        <styleUrl>#poly-FF0000-1000-0-normal</styleUrl>
+      </Pair>
+      <Pair>
+        <key>highlight</key>
+        <styleUrl>#poly-FF0000-1000-0-highlight</styleUrl>
+      </Pair>
+    </StyleMap>
+    <Style id="poly-FFEA00-1000-0-normal">
+      <LineStyle>
+        <color>ff00eaff</color>
+        <width>1</width>
+      </LineStyle>
+      <PolyStyle>
+        <color>0000eaff</color>
+        <fill>1</fill>
+        <outline>1</outline>
+      </PolyStyle>
+    </Style>
+    <Style id="poly-FFEA00-1000-0-highlight">
+      <LineStyle>
+        <color>ff00eaff</color>
+        <width>1.5</width>
+      </LineStyle>
+      <PolyStyle>
+        <color>0000eaff</color>
+        <fill>1</fill>
+        <outline>1</outline>
+      </PolyStyle>
+    </Style>
+    <StyleMap id="poly-FFEA00-1000-0">
+      <Pair>
+        <key>normal</key>
+        <styleUrl>#poly-FFEA00-1000-0-normal</styleUrl>
+      </Pair>
+      <Pair>
+        <key>highlight</key>
+        <styleUrl>#poly-FFEA00-1000-0-highlight</styleUrl>
+      </Pair>
+    </StyleMap>
+    <Placemark>
+      <name>cs panarukan</name>
+      <description><![CDATA[deskripsi: cs panarukan<br>Layer: cs panarukan]]></description>
+      <styleUrl>#poly-FF0000-1000-0</styleUrl>
+      <ExtendedData>
+        <Data name="deskripsi">
+          <value>cs panarukan</value>
+        </Data>
+        <Data name="Layer">
+          <value>cs panarukan</value>
+        </Data>
+      </ExtendedData>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <tessellate>1</tessellate>
+            <coordinates>
+              117.257994,1.900553,0
+              117.258019,1.899621,0
+              117.25932,1.899692,0
+              117.259272,1.900565,0
+              117.257994,1.900553,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>ps panarukan</name>
+      <description><![CDATA[deskripsi: ps panarukan<br>Layer: ps panarukan]]></description>
+      <styleUrl>#poly-FFEA00-1000-0</styleUrl>
+      <ExtendedData>
+        <Data name="deskripsi">
+          <value>ps panarukan</value>
+        </Data>
+        <Data name="Layer">
+          <value>ps panarukan</value>
+        </Data>
+      </ExtendedData>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <tessellate>1</tessellate>
+            <coordinates>
+              117.259272,1.900565,0
+              117.25932,1.899692,0
+              117.259951,1.899794,0
+              117.260042,1.899896,0
+              117.259962,1.900791,0
+              117.259272,1.900565,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>cs anyer</name>
+      <description><![CDATA[deskripsi: cs anyer<br>Layer: cs anyer]]></description>
+      <styleUrl>#poly-FF0000-1000-0</styleUrl>
+      <ExtendedData>
+        <Data name="deskripsi">
+          <value>cs anyer</value>
+        </Data>
+        <Data name="Layer">
+          <value>cs anyer</value>
+        </Data>
+      </ExtendedData>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <tessellate>1</tessellate>
+            <coordinates>
+              117.260203,1.899136,0
+              117.260111,1.898319,0
+              117.260307,1.897981,0
+              117.260709,1.897875,0
+              117.260854,1.898489,0
+              117.260912,1.899182,0
+              117.260203,1.899136,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>ps anyer</name>
+      <description><![CDATA[deskripsi: ps anyer<br>Layer: ps anyer]]></description>
+      <styleUrl>#poly-FFEA00-1000-0</styleUrl>
+      <ExtendedData>
+        <Data name="deskripsi">
+          <value>ps anyer</value>
+        </Data>
+        <Data name="Layer">
+          <value>ps anyer</value>
+        </Data>
+      </ExtendedData>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <tessellate>1</tessellate>
+            <coordinates>
+              117.260307,1.897981,0
+              117.260136,1.897929,0
+              117.26013,1.897556,0
+              117.260124,1.897194,0
+              117.260604,1.897131,0
+              117.260709,1.897875,0
+              117.260307,1.897981,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>cs ubud</name>
+      <description><![CDATA[deskripsi: cs ubud<br>Layer: cs ubud]]></description>
+      <styleUrl>#poly-FF0000-1000-0</styleUrl>
+      <ExtendedData>
+        <Data name="deskripsi">
+          <value>cs ubud</value>
+        </Data>
+        <Data name="Layer">
+          <value>cs ubud</value>
+        </Data>
+      </ExtendedData>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <tessellate>1</tessellate>
+            <coordinates>
+              117.244894,1.891889,0
+              117.244174,1.892304,0
+              117.243601,1.892582,0
+              117.243177,1.892001,0
+              117.244444,1.891133,0
+              117.244894,1.891889,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>0</name>
+      <description><![CDATA[deskripsi: 0<br>Layer: 0]]></description>
+      <styleUrl>#poly-FF0000-1000-0</styleUrl>
+      <ExtendedData>
+        <Data name="deskripsi">
+          <value>0</value>
+        </Data>
+        <Data name="Layer">
+          <value>0</value>
+        </Data>
+      </ExtendedData>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <tessellate>1</tessellate>
+            <coordinates>
+              117.253644,1.88105,0
+              117.253763,1.880621,0
+              117.254457,1.880689,0
+              117.254621,1.880854,0
+              117.254694,1.881389,0
+              117.254227,1.881238,0
+              117.253644,1.88105,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>cs ld kintamani</name>
+      <description><![CDATA[deskripsi: cs ld kintamani<br>Layer: cs ld kintamani]]></description>
+      <styleUrl>#poly-FF0000-1000-0</styleUrl>
+      <ExtendedData>
+        <Data name="deskripsi">
+          <value>cs ld kintamani</value>
+        </Data>
+        <Data name="Layer">
+          <value>cs ld kintamani</value>
+        </Data>
+      </ExtendedData>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <tessellate>1</tessellate>
+            <coordinates>
+              117.263994,1.890515,0
+              117.264174,1.889907,0
+              117.264916,1.890072,0
+              117.264797,1.890665,0
+              117.263994,1.890515,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>cs kintamani</name>
+      <description><![CDATA[deskripsi: cs kintamani<br>Layer: cs kintamani]]></description>
+      <styleUrl>#poly-FF0000-1000-0</styleUrl>
+      <ExtendedData>
+        <Data name="deskripsi">
+          <value>cs kintamani</value>
+        </Data>
+        <Data name="Layer">
+          <value>cs kintamani</value>
+        </Data>
+      </ExtendedData>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <tessellate>1</tessellate>
+            <coordinates>
+              117.268151,1.895395,0
+              117.267941,1.895069,0
+              117.267669,1.894561,0
+              117.268012,1.89436,0
+              117.268205,1.894246,0
+              117.268453,1.894799,0
+              117.268601,1.895221,0
+              117.268151,1.895395,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>ps kintamani</name>
+      <description><![CDATA[deskripsi: ps kintamani<br>Layer: ps kintamani]]></description>
+      <styleUrl>#poly-FFEA00-1000-0</styleUrl>
+      <ExtendedData>
+        <Data name="deskripsi">
+          <value>ps kintamani</value>
+        </Data>
+        <Data name="Layer">
+          <value>ps kintamani</value>
+        </Data>
+      </ExtendedData>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <tessellate>1</tessellate>
+            <coordinates>
+              117.267669,1.894561,0
+              117.267781,1.894026,0
+              117.267996,1.893781,0
+              117.268205,1.894246,0
+              117.267669,1.894561,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>ps gerdas</name>
+      <description><![CDATA[deskripsi: ps gerdas<br>Layer: ps gerdas]]></description>
+      <styleUrl>#poly-FFEA00-1000-0</styleUrl>
+      <ExtendedData>
+        <Data name="deskripsi">
+          <value>ps gerdas</value>
+        </Data>
+        <Data name="Layer">
+          <value>ps gerdas</value>
+        </Data>
+      </ExtendedData>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <tessellate>1</tessellate>
+            <coordinates>
+              117.269299,1.892123,0
+              117.269021,1.891453,0
+              117.268814,1.891024,0
+              117.26926,1.891015,0
+              117.269375,1.891153,0
+              117.269435,1.891576,0
+              117.269397,1.891877,0
+              117.269299,1.892123,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>cs samosir</name>
+      <description><![CDATA[deskripsi: cs samosir<br>Layer: cs samosir]]></description>
+      <styleUrl>#poly-FF0000-1000-0</styleUrl>
+      <ExtendedData>
+        <Data name="deskripsi">
+          <value>cs samosir</value>
+        </Data>
+        <Data name="Layer">
+          <value>cs samosir</value>
+        </Data>
+      </ExtendedData>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <tessellate>1</tessellate>
+            <coordinates>
+              117.275753,1.899728,0
+              117.276197,1.899693,0
+              117.276491,1.899776,0
+              117.27679,1.899892,0
+              117.27757,1.900756,0
+              117.277589,1.901085,0
+              117.277437,1.901288,0
+              117.276685,1.900445,0
+              117.276215,1.900015,0
+              117.275753,1.899728,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>ps malioboro</name>
+      <description><![CDATA[deskripsi: ps malioboro<br>Layer: ps malioboro]]></description>
+      <styleUrl>#poly-FFEA00-1000-0</styleUrl>
+      <ExtendedData>
+        <Data name="deskripsi">
+          <value>ps malioboro</value>
+        </Data>
+        <Data name="Layer">
+          <value>ps malioboro</value>
+        </Data>
+      </ExtendedData>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <tessellate>1</tessellate>
+            <coordinates>
+              117.289887,1.904868,0
+              117.289919,1.904495,0
+              117.289977,1.904315,0
+              117.290298,1.904203,0
+              117.290846,1.904236,0
+              117.290996,1.904342,0
+              117.291112,1.904617,0
+              117.290731,1.904717,0
+              117.29031,1.904771,0
+              117.289887,1.904868,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>cs malioboro</name>
+      <description><![CDATA[deskripsi: cs malioboro<br>Layer: cs malioboro]]></description>
+      <styleUrl>#poly-FF0000-1000-0</styleUrl>
+      <ExtendedData>
+        <Data name="deskripsi">
+          <value>cs malioboro</value>
+        </Data>
+        <Data name="Layer">
+          <value>cs malioboro</value>
+        </Data>
+      </ExtendedData>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <tessellate>1</tessellate>
+            <coordinates>
+              117.292042,1.903713,0
+              117.29266,1.903694,0
+              117.293487,1.903705,0
+              117.293477,1.904277,0
+              117.293429,1.904433,0
+              117.292813,1.90446,0
+              117.292025,1.904433,0
+              117.292042,1.903713,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>cs wakatobi</name>
+      <description><![CDATA[deskripsi: cs wakatobi<br>Layer: cs wakatobi]]></description>
+      <styleUrl>#poly-FF0000-1000-0</styleUrl>
+      <ExtendedData>
+        <Data name="deskripsi">
+          <value>cs wakatobi</value>
+        </Data>
+        <Data name="Layer">
+          <value>cs wakatobi</value>
+        </Data>
+      </ExtendedData>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <tessellate>1</tessellate>
+            <coordinates>
+              117.29342,1.899763,0
+              117.292551,1.899676,0
+              117.291658,1.899602,0
+              117.291894,1.899247,0
+              117.292241,1.898939,0
+              117.293456,1.898956,0
+              117.29342,1.899763,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>ps wakatobi</name>
+      <description><![CDATA[deskripsi: ps wakatobi<br>Layer: ps wakatobi]]></description>
+      <styleUrl>#poly-FFEA00-1000-0</styleUrl>
+      <ExtendedData>
+        <Data name="deskripsi">
+          <value>ps wakatobi</value>
+        </Data>
+        <Data name="Layer">
+          <value>ps wakatobi</value>
+        </Data>
+      </ExtendedData>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <tessellate>1</tessellate>
+            <coordinates>
+              117.293456,1.898956,0
+              117.292241,1.898939,0
+              117.292244,1.898402,0
+              117.293549,1.89795,0
+              117.293456,1.898956,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>cs ragunan</name>
+      <description><![CDATA[deskripsi: cs ragunan<br>Layer: cs ragunan]]></description>
+      <styleUrl>#poly-FF0000-1000-0</styleUrl>
+      <ExtendedData>
+        <Data name="deskripsi">
+          <value>cs ragunan</value>
+        </Data>
+        <Data name="Layer">
+          <value>cs ragunan</value>
+        </Data>
+      </ExtendedData>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <tessellate>1</tessellate>
+            <coordinates>
+              117.317009,1.944711,0
+              117.317026,1.944333,0
+              117.317348,1.944319,0
+              117.317344,1.943941,0
+              117.317829,1.943961,0
+              117.317782,1.944418,0
+              117.317707,1.944769,0
+              117.317009,1.944711,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>ps ragunan</name>
+      <description><![CDATA[deskripsi: ps ragunan<br>Layer: ps ragunan]]></description>
+      <styleUrl>#poly-FFEA00-1000-0</styleUrl>
+      <ExtendedData>
+        <Data name="deskripsi">
+          <value>ps ragunan</value>
+        </Data>
+        <Data name="Layer">
+          <value>ps ragunan</value>
+        </Data>
+      </ExtendedData>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <tessellate>1</tessellate>
+            <coordinates>
+              117.317344,1.943941,0
+              117.317411,1.94315,0
+              117.317824,1.943167,0
+              117.317826,1.943604,0
+              117.317829,1.943961,0
+              117.317344,1.943941,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+  </Document>
+</kml>
