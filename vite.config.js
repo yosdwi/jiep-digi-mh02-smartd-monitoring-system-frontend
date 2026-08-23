@@ -96,6 +96,11 @@ export default defineConfig({
   },
   preview: {
     proxy: proxyConfig,
+    // Railway preview domain. Keep this explicit rather than `true` so the
+    // preview server retains Vite's DNS-rebinding protection for other hosts.
+    allowedHosts: [
+      'jiep-digi-mh02-smartd-monitoring-system-frontend-production.up.railway.app',
+    ],
   },
   optimizeDeps: {
     // Pre-bundle deck.gl + editable-layers bersama supaya berbagi satu instance luma.gl
