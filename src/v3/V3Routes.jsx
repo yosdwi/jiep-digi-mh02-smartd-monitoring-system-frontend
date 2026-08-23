@@ -8,6 +8,7 @@ import AreaOperasiV3 from './pages/AreaOperasiV3';
 import LayerOrthoV3 from './pages/LayerOrthoV3';
 import DatalogRecordV3 from './pages/DatalogRecordV3';
 import FixtureCycleTimeLab from './pages/FixtureCycleTimeLab';
+import AnalysisWorkspaceV3 from './pages/AnalysisWorkspaceV3';
 import { V3_BASE } from './app/navigation';
 
 // V3 is additive. It mounts under /v3/* and modifies nothing in V1, V2 or MIR,
@@ -33,6 +34,8 @@ export default function V3Routes() {
         <Route path="peta/area" element={<AreaOperasiV3 />} />
 
         <Route path="lab/fixture" element={<FixtureCycleTimeLab />} />
+
+        <Route path="lab/analysis-workspace" element={<AnalysisWorkspaceV3 />} />
 
         <Route path="*" element={<Navigate to={`${V3_BASE}/historis/cycle-time`} replace />} />
       </Route>
