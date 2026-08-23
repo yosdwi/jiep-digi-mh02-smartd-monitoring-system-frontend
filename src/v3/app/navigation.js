@@ -41,6 +41,7 @@ export const navigation = [
     key: 'lab',
     label: 'Development Lab',
     items: [
+      { key: 'analysis-workspace', label: 'Analysis Workspace', path: `${V3_BASE}/lab/analysis-workspace`, glyph: '⌘', hint: 'Migrasi UI V23.3 ke React' },
       { key: 'fixture', label: 'Fixture 1 Hari', path: `${V3_BASE}/lab/fixture`, glyph: '▣', hint: 'Trace ClickHouse 2 detik' },
     ],
   },
