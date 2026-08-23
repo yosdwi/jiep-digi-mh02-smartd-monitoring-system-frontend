@@ -21,6 +21,7 @@ import Dashboard from './pages/Dashboard';
 import Settings from './pages/Settings';
 import DeviceServiceManagement from './pages/DeviceServiceManagement'; // Menu ber-gate: kelola service device
 import V3Routes from './v3/V3Routes'; // V3: shell + map workspace sendiri, di luar Layout lama
+import AnalysisWorkspaceV4 from './v4/AnalysisWorkspaceV4';
 import useUserStore from './stores/userStore';
 
 function App() {
@@ -37,6 +38,7 @@ function App() {
             sits OUTSIDE the legacy <Layout> rather than inside it. Additive:
             nothing below this route changed. */}
         <Route path="/v3/*" element={<V3Routes />} />
+        <Route path="/v4/analysis-workspace" element={<AnalysisWorkspaceV4 />} />
 
         <Route
           path="/*"
