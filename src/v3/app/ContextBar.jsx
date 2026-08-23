@@ -8,7 +8,7 @@ import TimeRangePicker from './TimeRangePicker';
 import useUnitAvailability from './useUnitAvailability';
 import ExportDialog from '../panel/ExportDialog';
 import { Button, Chip, Divider, ProgressBar } from '../foundation/ui';
-import { color as C, text, space, layout } from '../foundation/tokens';
+import { color as C, text, space, layout, radius } from '../foundation/tokens';
 
 // The context bar replaces the 972-line blocking FilterModal.
 //
@@ -19,9 +19,10 @@ import { color as C, text, space, layout } from '../foundation/tokens';
 
 const fmtInt = (n) => Number(n || 0).toLocaleString('id-ID');
 
-export default function ContextBar() {
+export default function ContextBar({ variant = 'default' }) {
   const context = useHistoryStore((s) => s.context);
   const setContext = useHistoryStore((s) => s.setContext);
+  const applyContext = useHistoryStore((s) => s.applyContext);
   const status = useHistoryStore((s) => s.status);
   const profileDistrict = useUserStore((s) => s.profile?.distrik);
 
@@ -72,20 +73,27 @@ export default function ContextBar() {
 
   const handleRun = useCallback(() => {
     if (busy) { abortLoad(); return; }
+    applyContext();
     loadTrace({
       district,
       unitNos: context.unitNos,
       startDateTime: context.startDateTime,
       endDateTime: context.endDateTime,
     });
-  }, [busy, district, context.unitNos, context.startDateTime, context.endDateTime]);
+  }, [busy, district, context.unitNos, context.startDateTime, context.endDateTime, applyContext]);
+
+  const analysisSurface = variant === 'analysis';
 
   return (
     <header style={{
-      height: layout.contextBarHeight, flexShrink: 0,
+      height: analysisSurface ? 'auto' : layout.contextBarHeight,
+      minHeight: layout.contextBarHeight, flexShrink: 0,
       display: 'flex', alignItems: 'center', gap: space[2],
-      padding: `0 ${space[3]}px`,
-      background: C.white, borderBottom: `1px solid ${C.line}`,
+      padding: analysisSurface ? `${space[2]}px ${space[3]}px` : `0 ${space[3]}px`,
+      margin: analysisSurface ? `${space[2]}px ${space[2]}px 0` : 0,
+      background: C.white, border: `1px solid ${C.line}`,
+      borderRadius: analysisSurface ? radius.lg : 0,
+      boxShadow: analysisSurface ? '0 1px 2px rgba(36,50,64,0.05)' : 'none',
       overflow: 'hidden',
     }}>
       {/* Filters scroll when the bar is cramped; the actions after this group do

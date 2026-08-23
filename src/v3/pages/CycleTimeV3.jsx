@@ -38,5 +38,7 @@ export default function CycleTimeV3() {
     { key: 'bands', title: 'Kelas kecepatan', render: () => <SpeedBandEditor /> },
   ]), []);
 
-  return <HistoryWorkspace defaultPanel="summary" sidePanels={sidePanels} />;
+  // V3 supplies the data/map runtime only.  The visible surface follows the
+  // locked Analysis Workspace, not the legacy History page composition.
+  return <HistoryWorkspace appearance="analysis-locked" defaultPanel="summary" sidePanels={sidePanels} />;
 }

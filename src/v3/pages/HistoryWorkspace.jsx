@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import useUserStore from '../../stores/userStore';
 import useHistoryStore from '../state/historyStore';
 import * as registry from '../state/traceRegistry';
-import { computeAnalytics } from '../services/analyticsClient';
+import { computeAnalytics, STATE_META, STATE_ORDER } from '../services/analyticsClient';
 import MapWorkspace, { DEFAULT_VIEW_STATE, pointInPolygon } from '../map/MapWorkspace';
 import { mercatorAspect, splitWorkspace } from '../map/orthoFit';
 import { MapHint, MapStatusBar } from '../map/MapToolbar';
@@ -37,6 +37,7 @@ function clamp(value, min, max) {
 }
 
 export default function HistoryWorkspace({
+  appearance = 'default',
   extraLayers = [],
   sidePanels = [],
   defaultPanel = 'summary',
@@ -44,9 +45,10 @@ export default function HistoryWorkspace({
   onSampleClick,
   temporal = null,
   cameraTarget = null,
+  headerContent = null,
 }) {
   const profileDistrict = useUserStore((s) => s.profile?.distrik);
-  const contextDistrict = useHistoryStore((s) => s.context.district);
+  const contextDistrict = useHistoryStore((s) => s.appliedContext?.district ?? s.context.district);
   const district = contextDistrict || profileDistrict || (import.meta.env.DEV ? 'BRCB' : '');
 
   const selectedIds = useHistoryStore((s) => s.selection.deviceIds);
@@ -338,9 +340,43 @@ export default function HistoryWorkspace({
     }
   }, [selectedIds]);
 
+  if (appearance === 'analysis-locked') {
+    return (
+      <LockedAnalysisWorkspace
+        panels={panels}
+        activePanel={activePanel}
+        onPanelChange={setPanel}
+        tool={tool}
+        onToolChange={setTool}
+        onResetView={fitToData}
+        onZoomIn={() => zoomBy(1)}
+        onZoomOut={() => zoomBy(-1)}
+        mapRef={mapRef}
+        layers={layers}
+        cameraCommand={effectiveCamera}
+        onLasso={handleLasso}
+        onZoomChange={setZoom}
+        onCursorMove={setCursor}
+        cursor={cursor}
+        zoom={zoom}
+        orthoLoading={orthoLoading}
+        playbackActive={playbackActive}
+        temporal={temporal}
+        bottomPanelHeight={bottomPanelHeight}
+        onResizeStart={(event) => {
+          event.preventDefault();
+          bottomResizeRef.current = { startY: event.clientY, startHeight: bottomPanelHeight };
+          document.body.style.cursor = 'row-resize';
+          document.body.style.userSelect = 'none';
+        }}
+      />
+    );
+  }
+
   return (
     <>
       <ContextBar />
+      {headerContent}
       <WorkspaceToolStrip
         panels={panels}
         activePanel={activePanel.key}
@@ -461,6 +497,219 @@ export default function HistoryWorkspace({
       </div>
     </>
   );
+}
+
+// ---------------------------------------------------------------------------
+// Locked Analysis Workspace surface
+// ---------------------------------------------------------------------------
+// This is intentionally a separate composition from the legacy History page.
+// Its inputs are the same optimised V3 runtime objects, but the visible
+// hierarchy follows the locked HTML: context → KPI row → full map with a cycle
+// overlay → performance/trend dock.  Do not fold this back into the V3 page
+// chrome merely because the underlying services are shared.
+function LockedAnalysisWorkspace({
+  panels,
+  activePanel,
+  onPanelChange,
+  tool,
+  onToolChange,
+  onResetView,
+  onZoomIn,
+  onZoomOut,
+  mapRef,
+  layers,
+  cameraCommand,
+  onLasso,
+  onZoomChange,
+  onCursorMove,
+  cursor,
+  zoom,
+  orthoLoading,
+  playbackActive,
+  temporal,
+  bottomPanelHeight,
+  onResizeStart,
+}) {
+  const analytics = useHistoryStore((s) => s.analytics);
+  const fleet = analytics.fleet;
+
+  return (
+    <section style={{
+      flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column',
+      background: C.g0, overflow: 'hidden',
+    }}>
+      <ContextBar variant="analysis" />
+
+      <div style={{ flex: 1, minHeight: 0, overflow: 'auto', padding: space[2] }}>
+        <AnalysisKpiStrip fleet={fleet} computing={analytics.computing} />
+
+        <article style={{
+          position: 'relative', minHeight: 560, overflow: 'hidden', background: C.white,
+          border: `1px solid ${C.line}`, borderRadius: radius.lg,
+          boxShadow: '0 1px 2px rgba(36,50,64,0.06)',
+        }}>
+          <MapWorkspace
+            ref={mapRef}
+            layers={layers}
+            cameraCommand={cameraCommand}
+            tool={tool}
+            onLasso={onLasso}
+            onZoomChange={onZoomChange}
+            onCursorMove={onCursorMove}
+          />
+
+          <MapLegend />
+          <LockedMapTools
+            tool={tool}
+            onToolChange={onToolChange}
+            onResetView={onResetView}
+            onZoomIn={onZoomIn}
+            onZoomOut={onZoomOut}
+          />
+          <CycleComposition fleet={fleet} />
+
+          <div style={{
+            position: 'absolute', right: space[2], bottom: space[2], zIndex: 12,
+            padding: '5px 8px', border: `1px solid ${C.line}`, borderRadius: radius.md,
+            background: 'rgba(255,255,255,.94)', color: C.g5, ...text.micro,
+          }}>
+            Zoom {Number(zoom || 0).toFixed(0)} · {cursor ? `${cursor[1].toFixed(5)}, ${cursor[0].toFixed(5)}` : orthoLoading ? 'Memuat peta…' : 'Peta siap'}
+          </div>
+        </article>
+
+        <section style={{
+          display: 'grid', gridTemplateColumns: 'minmax(0,1.45fr) minmax(300px,.55fr)',
+          gap: space[2], marginTop: space[2], alignItems: 'stretch',
+        }}>
+          <AnalysisSurfaceCard title="Performance Unit">
+            <AnalysisPanelTabs panels={panels} active={activePanel.key} onChange={onPanelChange} />
+            <div style={{ maxHeight: 320, overflow: 'auto' }}>{activePanel.render()}</div>
+          </AnalysisSurfaceCard>
+          <AnalysisSurfaceCard title="Ringkasan & Komposisi Cycle">
+            <div style={{ maxHeight: 364, overflow: 'auto' }}><FleetSummaryPanel /></div>
+          </AnalysisSurfaceCard>
+        </section>
+
+        <AnalysisSurfaceCard title="Trend Performance" style={{ marginTop: space[2] }}>
+          <div style={{ position: 'relative', height: bottomPanelHeight, minHeight: 132 }}>
+            <div
+              role="separator"
+              aria-label="Ubah tinggi Trend Performance"
+              aria-orientation="horizontal"
+              onPointerDown={onResizeStart}
+              style={{ position: 'absolute', top: -9, left: 0, right: 0, height: 18, cursor: 'row-resize', zIndex: 4 }}
+            />
+            {temporal ?? <TemporalPanel style={{ height: '100%', borderTop: 'none' }} status={<MapStatusBar zoom={zoom} coordinate={cursor} orthoLoading={orthoLoading} />} />}
+          </div>
+        </AnalysisSurfaceCard>
+      </div>
+
+      {playbackActive ? <PlaybackBar /> : null}
+    </section>
+  );
+}
+
+function AnalysisKpiStrip({ fleet, computing }) {
+  const cards = [
+    ['Total Unit', fleet?.unitCount, 'unit'],
+    ['Total Ritase', fleet?.totalRitase, 'rit'],
+    ['Avg Cycle Time', fleet?.avgCycleTime, 'menit'],
+    ['Avg Jarak Muatan', fleet?.avgJarakFrontDisposal, 'km'],
+    ['Avg Jarak Kosongan', fleet?.avgJarakDisposalFront, 'km'],
+    ['Avg Actual Speed', fleet?.averageSpeed, 'km/jam'],
+  ];
+
+  return (
+    <section style={{ display: 'grid', gridTemplateColumns: 'repeat(6, minmax(0,1fr))', gap: space[2], marginBottom: space[2] }}>
+      {cards.map(([label, value, unit]) => (
+        <div key={label} style={{ background: C.white, border: `1px solid ${C.line}`, borderRadius: radius.lg, padding: `${space[2]}px ${space[3]}px`, minHeight: 70 }}>
+          <div style={{ ...text.micro, color: C.g5 }}>{label}</div>
+          <div style={{ marginTop: 5, display: 'flex', alignItems: 'baseline', gap: 4 }}>
+            <strong style={{ ...text.metric, color: C.ink }}>{computing ? '…' : formatMetric(value)}</strong>
+            <span style={{ ...text.micro, color: C.g5 }}>{computing || value == null ? '' : unit}</span>
+          </div>
+        </div>
+      ))}
+    </section>
+  );
+}
+
+function CycleComposition({ fleet }) {
+  const rows = STATE_ORDER
+    .map((state) => ({ state, ms: fleet?.stateMs?.[state] || 0, ...STATE_META[state] }))
+    .filter((row) => row.ms > 0);
+  const total = rows.reduce((sum, row) => sum + row.ms, 0) || 1;
+
+  return (
+    <aside style={{
+      position: 'absolute', top: space[2], left: space[2], zIndex: 12, width: 304,
+      padding: space[3], background: 'rgba(255,255,255,.96)', border: `1px solid ${C.line}`,
+      borderRadius: radius.lg, boxShadow: '0 2px 10px rgba(36,50,64,.12)',
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'baseline' }}>
+        <span style={{ ...text.sm, color: C.ink, fontWeight: 750 }}>Komposisi Cycle</span>
+        <strong style={{ ...text.sm, color: C.sel }}>{fleet ? `${formatMetric(fleet.avgCycleTime)} menit` : '—'}</strong>
+      </div>
+      <div style={{ height: 8, display: 'flex', overflow: 'hidden', borderRadius: 999, marginTop: 9, background: C.g1 }}>
+        {rows.map((row) => <span key={row.state} style={{ width: `${(row.ms / total) * 100}%`, background: row.color }} />)}
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '5px 8px', marginTop: 9 }}>
+        {rows.slice(0, 6).map((row) => (
+          <div key={row.state} style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0 }}>
+            <span style={{ width: 7, height: 7, borderRadius: 99, background: row.color, flexShrink: 0 }} />
+            <span style={{ ...text.micro, color: C.g6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.label}</span>
+          </div>
+        ))}
+      </div>
+    </aside>
+  );
+}
+
+function LockedMapTools({ tool, onToolChange, onResetView, onZoomIn, onZoomOut }) {
+  const tools = [
+    ['pan', '✋', 'Geser peta', () => onToolChange('pan')],
+    ['measure', '↔', 'Ukur jarak', () => onToolChange('measure')],
+    ['+', '＋', 'Perbesar', onZoomIn],
+    ['-', '−', 'Perkecil', onZoomOut],
+    ['fit', '⌗', 'Muat semua data', onResetView],
+  ];
+  return (
+    <div style={{ position: 'absolute', top: space[2], right: space[2], zIndex: 12, overflow: 'hidden', border: `1px solid ${C.line}`, borderRadius: radius.md, boxShadow: '0 2px 8px rgba(36,50,64,.14)' }}>
+      {tools.map(([key, glyph, label, action]) => (
+        <button key={key} type="button" title={label} aria-label={label} onClick={action} style={{
+          display: 'grid', placeItems: 'center', width: 38, height: 38, border: 0,
+          borderBottom: `1px solid ${C.line}`, background: tool === key ? C.selBg : C.white,
+          color: tool === key ? C.sel : C.g6, cursor: 'pointer', fontSize: 17,
+        }}>{glyph}</button>
+      ))}
+    </div>
+  );
+}
+
+function AnalysisSurfaceCard({ title, children, style }) {
+  return (
+    <section style={{ background: C.white, border: `1px solid ${C.line}`, borderRadius: radius.lg, overflow: 'hidden', boxShadow: '0 1px 2px rgba(36,50,64,0.05)', ...style }}>
+      <header style={{ padding: `${space[2]}px ${space[3]}px`, borderBottom: `1px solid ${C.line}`, ...text.sm, fontWeight: 750, color: C.ink }}>{title}</header>
+      {children}
+    </section>
+  );
+}
+
+function AnalysisPanelTabs({ panels, active, onChange }) {
+  return (
+    <nav aria-label="Tampilan Performance Unit" style={{ display: 'flex', gap: 2, padding: `${space[2]}px ${space[2]}px 0`, borderBottom: `1px solid ${C.line}`, overflowX: 'auto' }}>
+      {panels.slice(0, 4).map((item) => {
+        const selected = active === item.key;
+        return <button key={item.key} type="button" onClick={() => onChange(item.key)} style={{ border: 0, borderBottom: `2px solid ${selected ? C.sel : 'transparent'}`, padding: `7px ${space[2]}px`, background: 'transparent', color: selected ? C.sel : C.g5, fontFamily: font.sans, ...text.micro, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>{shortPanelTitle(item.title)}</button>;
+      })}
+    </nav>
+  );
+}
+
+function formatMetric(value) {
+  if (!Number.isFinite(Number(value))) return '—';
+  const numeric = Number(value);
+  return Number.isInteger(numeric) ? numeric.toLocaleString('id-ID') : numeric.toLocaleString('id-ID', { maximumFractionDigits: 1 });
 }
 
 function WorkspaceToolStrip({

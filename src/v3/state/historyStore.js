@@ -57,6 +57,12 @@ const useHistoryStore = create((set, get) => ({
     source: 'miforce',
   },
 
+  // Snapshot used by every result surface. `context` above is deliberately a
+  // staging buffer: changing a picker must not silently relabel the trace that
+  // is still on screen. ContextBar copies it here only when the operator presses
+  // Terapkan, immediately before a new trace query starts.
+  appliedContext: null,
+
   // ---- load status --------------------------------------------------------
   status: {
     state: 'idle',        // idle | resolving | queued | running | loading | ready | error
@@ -138,6 +144,7 @@ const useHistoryStore = create((set, get) => ({
 
   // ---- actions ------------------------------------------------------------
   setContext: (patch) => set((s) => ({ context: { ...s.context, ...patch } })),
+  applyContext: () => set((s) => ({ appliedContext: { ...s.context } })),
   setStatus: (patch) => set((s) => ({ status: { ...s.status, ...patch } })),
 
   setQueryResult: ({ devices, availableHours, rangeStartMs, rangeEndMs, queryId }) =>
@@ -201,6 +208,7 @@ const useHistoryStore = create((set, get) => ({
     selection: { deviceIds: [], areaId: null, eventId: null },
     playback: { active: false, playing: false, speed: 10, displayMs: null, autoFollow: false },
     analytics: { fleet: null, units: [], computing: false, error: null },
+    appliedContext: null,
   }),
 }));
 

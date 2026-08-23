@@ -2,10 +2,10 @@ import { color as C, font, radius, space, text } from '../../foundation/tokens';
 
 export const ANALYSIS_MODES = [
   { key: 'cycle-time', label: 'Cycle Time', available: true },
-  { key: 'speed-analysis', label: 'Speed Analysis', available: false },
-  { key: 'gis-workspace', label: 'GIS Workspace', available: false },
-  { key: 'duration-in-pit', label: 'Duration In Pit', available: false },
-  { key: 'data-log-record', label: 'Data Log Record', available: false },
+  { key: 'speed-analysis', label: 'Speed Analysis', available: true },
+  { key: 'gis-workspace', label: 'GIS Workspace', available: true },
+  { key: 'duration-in-pit', label: 'Duration In Pit', available: true },
+  { key: 'data-log-record', label: 'Data Log Record', available: true },
 ];
 
 export default function AnalysisModeTabs({ activeMode, onModeChange }) {
@@ -79,7 +79,7 @@ export default function AnalysisModeTabs({ activeMode, onModeChange }) {
           whiteSpace: 'nowrap',
         }}
       >
-        Shared map · filter · playback
+        Satu filter · peta · selection · playback
       </span>
     </nav>
   );

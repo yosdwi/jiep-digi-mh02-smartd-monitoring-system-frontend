@@ -24,7 +24,9 @@ const PAGE_SIZES = [50, 100, 250, 500];
 
 export default function DatalogRecordV3() {
   const profileDistrict = useUserStore((s) => s.profile?.distrik);
-  const context = useHistoryStore((s) => s.context);
+  const stagedContext = useHistoryStore((s) => s.context);
+  const appliedContext = useHistoryStore((s) => s.appliedContext);
+  const context = appliedContext || stagedContext;
   const district = context.district || profileDistrict || (import.meta.env.DEV ? 'BRCB' : '');
 
   const [data, setData] = useState(null);
@@ -36,7 +38,7 @@ export default function DatalogRecordV3() {
   const [search, setSearch] = useState('');
   const abortRef = useRef(null);
 
-  const canRun = Boolean(district) && context.unitNos.length > 0;
+  const canRun = Boolean(appliedContext) && Boolean(district) && context.unitNos.length > 0;
 
   const run = useCallback(async (nextPage = page) => {
     if (!canRun) return;
@@ -209,7 +211,7 @@ function TableBody({ loading, error, data, rows, columns, canRun, onRetry }) {
         title={canRun ? 'Belum ada data dimuat' : 'Pilih unit dan rentang waktu dulu'}
         hint={canRun
           ? 'Tekan "Muat data" untuk mengambil baris mentah pada konteks ini.'
-          : 'Datalog membaca konteks yang sama dengan halaman historis lain — atur di bar atas.'}
+          : 'Pilih filter di bar atas lalu tekan Terapkan. Data Log selalu memakai filter yang terakhir diterapkan.'}
       />
     );
   }

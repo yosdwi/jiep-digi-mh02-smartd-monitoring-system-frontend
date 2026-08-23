@@ -33,7 +33,7 @@ function download(filename, content, mime) {
   URL.revokeObjectURL(url);
 }
 
-export default function AreaListPanel({ onFocus, onOpenAttributes }) {
+export default function AreaListPanel({ onFocus, onOpenAttributes, handoff = null, onSaveHandoff }) {
   const collection = useAreaStore((s) => s.collection);
   const selectedIndexes = useAreaStore((s) => s.selectedIndexes);
   const setSelected = useAreaStore((s) => s.setSelected);
@@ -53,6 +53,7 @@ export default function AreaListPanel({ onFocus, onOpenAttributes }) {
   const [busy, setBusy] = useState(false);
 
   const selected = new Set(selectedIndexes);
+  const ready = Boolean(layerId || handoff);
 
   const switchLayer = (id) => {
     if (dirty && !window.confirm('Ada perubahan belum disimpan di layer ini. Ganti layer dan buang perubahan?')) return;
@@ -117,7 +118,12 @@ export default function AreaListPanel({ onFocus, onOpenAttributes }) {
 
   return (
     <div>
-      <div style={{
+      {handoff ? (
+        <div style={{ padding: space[3], borderBottom: `1px solid ${C.line}`, background: C.selBg }}>
+          <strong style={{ display: 'block', ...text.sm, color: C.ink }}>Speed Segments · Draft v{handoff.version}</strong>
+          <span style={{ ...text.xs, color: C.g6 }}>{collection.features.length} segment dalam handoff ini.</span>
+        </div>
+      ) : <div style={{
         padding: space[3], borderBottom: `1px solid ${C.line}`,
         display: 'flex', flexDirection: 'column', gap: 6,
       }}>
@@ -143,15 +149,15 @@ export default function AreaListPanel({ onFocus, onOpenAttributes }) {
           </div>
         ) : null}
         {saveError ? <StatusNote tone="error" title="Gagal menyimpan" hint={saveError} /> : null}
-      </div>
+      </div>}
 
       <div style={{
         display: 'flex', flexWrap: 'wrap', gap: 6,
         padding: space[3], borderBottom: `1px solid ${C.line}`,
         position: 'sticky', top: 0, background: C.white, zIndex: 1,
       }}>
-        <Button size="sm" disabled={!layerId} onClick={importPitKml}>Impor KML pit</Button>
-        <Button size="sm" disabled={!layerId} onClick={() => fileRef.current?.click()}>Impor GeoJSON</Button>
+        <Button size="sm" disabled={!layerId || Boolean(handoff)} onClick={importPitKml}>Impor KML pit</Button>
+        <Button size="sm" disabled={!layerId || Boolean(handoff)} onClick={() => fileRef.current?.click()}>Impor GeoJSON</Button>
         <Button
           size="sm"
           disabled={collection.features.length === 0}
@@ -159,8 +165,8 @@ export default function AreaListPanel({ onFocus, onOpenAttributes }) {
         >
           Ekspor
         </Button>
-        <Button size="sm" variant={dirty ? 'primary' : 'default'} disabled={!dirty || !layerId} onClick={save}>
-          {dirty ? 'Simpan' : 'Tersimpan'}
+        <Button size="sm" variant={dirty ? 'primary' : 'default'} disabled={!dirty || !ready} onClick={handoff ? onSaveHandoff : save}>
+          {dirty ? (handoff ? 'Simpan ke Draft' : 'Simpan') : 'Tersimpan'}
         </Button>
         <input ref={fileRef} type="file" accept=".geojson,.json" onChange={importFile} style={{ display: 'none' }} />
       </div>
@@ -181,7 +187,7 @@ export default function AreaListPanel({ onFocus, onOpenAttributes }) {
         </Field>
       </Modal>
 
-      {!layerId ? (
+      {!ready ? (
         <Empty
           title="Belum ada layer terpilih"
           hint="Pilih atau buat layer di atas dulu — area yang digambar butuh rumah untuk tersimpan."

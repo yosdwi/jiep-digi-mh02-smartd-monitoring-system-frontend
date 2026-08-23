@@ -102,6 +102,7 @@ const useAreaStore = create((set, get) => ({
   setMode: (mode) => set({ mode }),
   setSnapping: (snapping) => set({ snapping }),
   setSelected: (selectedIndexes) => set({ selectedIndexes }),
+  markClean: () => set({ dirty: false }),
 
   // ---------------------------------------------------------------- layers
 

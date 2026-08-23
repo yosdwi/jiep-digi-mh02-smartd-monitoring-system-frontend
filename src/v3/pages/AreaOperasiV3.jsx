@@ -68,9 +68,9 @@ const HINTS = {
   'measure-area': 'Klik berurutan untuk mengukur luas · klik dua kali untuk selesai',
 };
 
-export default function AreaOperasiV3() {
+export default function AreaOperasiV3({ handoff = null, onCommitHandoff, onBackToSpeed }) {
   const profileDistrict = useUserStore((s) => s.profile?.distrik);
-  const contextDistrict = useHistoryStore((s) => s.context.district);
+  const contextDistrict = useHistoryStore((s) => s.appliedContext?.district ?? s.context.district);
   const district = contextDistrict || profileDistrict || (import.meta.env.DEV ? 'BRCB' : '');
 
   const collection = useAreaStore((s) => s.collection);
@@ -92,8 +92,29 @@ export default function AreaOperasiV3() {
   const suggestion = useAreaStore((s) => s.suggestion);
   const layerId = useAreaStore((s) => s.layerId);
   const loadLayers = useAreaStore((s) => s.loadLayers);
+  const importCollection = useAreaStore((s) => s.importCollection);
+  const markClean = useAreaStore((s) => s.markClean);
 
   useEffect(() => { loadLayers(); }, [loadLayers]);
+
+  const loadedHandoffRef = useRef(null);
+  useEffect(() => {
+    if (!handoff || loadedHandoffRef.current === handoff.id) return;
+    loadedHandoffRef.current = handoff.id;
+    importCollection(handoff.collection);
+    setSelected(handoff.collection.features.map((_, index) => index));
+    setMode('modify');
+    setPanel('list');
+  }, [handoff, importCollection, setSelected, setMode]);
+
+  const canEdit = Boolean(layerId || handoff);
+  const persist = useCallback(() => {
+    if (handoff) {
+      onCommitHandoff?.(collection);
+      markClean();
+    }
+    else save();
+  }, [handoff, onCommitHandoff, collection, markClean, save]);
 
   const selectedTraceIds = useHistoryStore((s) => s.selection.deviceIds);
 
@@ -121,7 +142,7 @@ export default function AreaOperasiV3() {
       }
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
         event.preventDefault();
-        save();
+        persist();
         return;
       }
       if (event.key === 'Escape') { setMode('view'); return; }
@@ -137,11 +158,11 @@ export default function AreaOperasiV3() {
       // Draw/edit shortcuts need a target layer, same as their toolbar buttons.
       // View and measure modes don't write anything, so they stay unguarded.
       const needsLayer = next && next !== 'view' && !MEASURE_MODES.has(next);
-      if (next && (!needsLayer || layerId)) setMode(next);
+      if (next && (!needsLayer || canEdit)) setMode(next);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [undo, redo, save, setMode, removeSelected, selectedIndexes.length, layerId]);
+  }, [undo, redo, persist, setMode, removeSelected, selectedIndexes.length, canEdit]);
 
   // ---- edit layer ----------------------------------------------------------
   const editMode = useMemo(() => {
@@ -264,22 +285,22 @@ export default function AreaOperasiV3() {
       key: 'draw',
       label: 'Gambar',
       tools: [
-        { key: 'draw-polygon', glyph: '⬠', label: 'Gambar polygon', shortcut: 'P', disabled: !layerId, onClick: () => setMode('draw-polygon') },
-        { key: 'draw-rectangle', glyph: '▭', label: 'Gambar persegi', shortcut: 'R', disabled: !layerId, onClick: () => setMode('draw-rectangle') },
-        { key: 'draw-circle', glyph: '◯', label: 'Gambar lingkaran', shortcut: 'C', disabled: !layerId, onClick: () => setMode('draw-circle') },
-        { key: 'draw-freehand', glyph: '✎', label: 'Gambar bebas', shortcut: 'F', disabled: !layerId, onClick: () => setMode('draw-freehand') },
+        { key: 'draw-polygon', glyph: '⬠', label: 'Gambar polygon', shortcut: 'P', disabled: !canEdit, onClick: () => setMode('draw-polygon') },
+        { key: 'draw-rectangle', glyph: '▭', label: 'Gambar persegi', shortcut: 'R', disabled: !canEdit, onClick: () => setMode('draw-rectangle') },
+        { key: 'draw-circle', glyph: '◯', label: 'Gambar lingkaran', shortcut: 'C', disabled: !canEdit, onClick: () => setMode('draw-circle') },
+        { key: 'draw-freehand', glyph: '✎', label: 'Gambar bebas', shortcut: 'F', disabled: !canEdit, onClick: () => setMode('draw-freehand') },
       ],
     },
     {
       key: 'edit',
       label: 'Ubah',
       tools: [
-        { key: 'modify', glyph: '⬡', label: 'Ubah titik sudut', shortcut: 'E', disabled: !layerId, onClick: () => setMode('modify') },
-        { key: 'translate', glyph: '✥', label: 'Pindahkan area', shortcut: 'M', disabled: !layerId, onClick: () => setMode('translate') },
-        { key: 'rotate', glyph: '↻', label: 'Putar area', disabled: !layerId, onClick: () => setMode('rotate') },
-        { key: 'scale', glyph: '⤢', label: 'Ubah ukuran', disabled: !layerId, onClick: () => setMode('scale') },
-        { key: 'duplicate', glyph: '⧉', label: 'Gandakan area', disabled: !layerId, onClick: () => setMode('duplicate') },
-        { key: 'split', glyph: '⑂', label: 'Belah area', disabled: !layerId, onClick: () => setMode('split') },
+        { key: 'modify', glyph: '⬡', label: 'Ubah titik sudut', shortcut: 'E', disabled: !canEdit, onClick: () => setMode('modify') },
+        { key: 'translate', glyph: '✥', label: 'Pindahkan area', shortcut: 'M', disabled: !canEdit, onClick: () => setMode('translate') },
+        { key: 'rotate', glyph: '↻', label: 'Putar area', disabled: !canEdit, onClick: () => setMode('rotate') },
+        { key: 'scale', glyph: '⤢', label: 'Ubah ukuran', disabled: !canEdit, onClick: () => setMode('scale') },
+        { key: 'duplicate', glyph: '⧉', label: 'Gandakan area', disabled: !canEdit, onClick: () => setMode('duplicate') },
+        { key: 'split', glyph: '⑂', label: 'Belah area', disabled: !canEdit, onClick: () => setMode('split') },
         {
           key: 'delete-selected', glyph: '🗑', label: 'Hapus area terpilih', shortcut: 'Del',
           danger: true, disabled: selectedIndexes.length === 0, onClick: removeSelected,
@@ -303,21 +324,21 @@ export default function AreaOperasiV3() {
         { key: 'snap', glyph: '⊹', label: snapping ? 'Snap aktif' : 'Snap mati', onClick: () => setSnapping(!snapping) },
         {
           key: 'save', glyph: '💾', label: saving ? 'Menyimpan…' : dirty ? 'Simpan (Ctrl+S)' : 'Tersimpan',
-          disabled: !dirty || saving || !layerId, onClick: save,
+          disabled: !dirty || saving || !canEdit, onClick: persist,
         },
       ],
     },
   ]), [
-    setMode, layerId, selectedIndexes.length, removeSelected, historyLength, futureLength,
-    undo, redo, snapping, setSnapping, dirty, saving, save,
+    setMode, canEdit, selectedIndexes.length, removeSelected, historyLength, futureLength,
+    undo, redo, snapping, setSnapping, dirty, saving, persist, handoff,
   ]);
 
   const panels = useMemo(() => ([
-    { key: 'list', glyph: '☰', title: `Area (${collection.features.length})`, render: () => <AreaListPanel onFocus={setCameraCommand} onOpenAttributes={() => setPanel('attributes')} /> },
+    { key: 'list', glyph: '☰', title: `Area (${collection.features.length})`, render: () => <AreaListPanel handoff={handoff} onSaveHandoff={persist} onFocus={setCameraCommand} onOpenAttributes={() => setPanel('attributes')} /> },
     { key: 'attributes', glyph: 'ⓘ', title: 'Properti area', render: () => <AreaAttributeForm /> },
     { key: 'suggest', glyph: '✧', title: 'Usulan dari jejak', render: () => <PolygonSuggestPanel /> },
     { key: 'layers', glyph: '◱', title: 'Layer', render: () => <LayerManager orthoVersions={orthoVersions} /> },
-  ]), [collection.features.length, orthoVersions]);
+  ]), [collection.features.length, orthoVersions, handoff, persist]);
 
   const activePanel = panels.find((p) => p.key === panel) || null;
   const activeTool = mode === 'view' ? 'pan' : mode;
@@ -342,6 +363,24 @@ export default function AreaOperasiV3() {
   return (
     <>
       <ContextBar />
+
+      {handoff ? (
+        <div style={{
+          minHeight: 48, display: 'flex', alignItems: 'center', gap: space[3],
+          padding: `6px ${space[4]}px`, background: C.selBg, borderBottom: `1px solid ${C.selLine}`,
+        }}>
+          <div style={{ flex: 1 }}>
+            <strong style={{ display: 'block', ...text.sm, color: C.ink }}>Geometry handoff · Review Draft v{handoff.version}</strong>
+            <span style={{ ...text.xs, color: C.g6 }}>Ubah titik sudut, tambah/hapus vertex, lalu simpan kembali ke Review Draft.</span>
+          </div>
+          <button type="button" onClick={onBackToSpeed} style={{ border: `1px solid ${C.lineStrong}`, background: C.white, borderRadius: 4, height: 30, padding: '0 10px', cursor: 'pointer' }}>
+            ← Kembali ke Speed Analysis
+          </button>
+          <button type="button" onClick={persist} disabled={!dirty} style={{ border: 0, background: dirty ? C.sel : C.g3, color: C.white, borderRadius: 4, height: 30, padding: '0 12px', cursor: dirty ? 'pointer' : 'not-allowed', fontWeight: 700 }}>
+            Simpan ke Review Draft
+          </button>
+        </div>
+      ) : null}
 
       <div style={{ flex: 1, minHeight: 0, display: 'flex', position: 'relative' }}>
         <div style={{ flex: 1, minWidth: 0, position: 'relative' }}>
