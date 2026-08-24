@@ -1,10 +1,7 @@
-import { useMemo, useState } from 'react';
-
-const DEMO_ROWS = [
-  { unit: 'DT5204', loader: 'EX3001', ritase: 12, cycle: 28.4, loaded: 2.8, empty: 2.4, speed: 24.6 },
-  { unit: 'DT5210', loader: 'EX3001', ritase: 11, cycle: 30.1, loaded: 2.7, empty: 2.5, speed: 23.2 },
-  { unit: 'DT5328', loader: 'EX3003', ritase: 10, cycle: 31.7, loaded: 3.2, empty: 2.9, speed: 21.8 },
-];
+import { useMemo, useState, useCallback } from 'react';
+import { AgGridReact } from 'ag-grid-react';
+import { v4GridTheme, v4DefaultColDef } from './agGridSetup';
+import { buildPerformanceRows } from './performanceRows';
 
 const TREND_METRICS = [
   ['ritase', 'Ritase', true],
@@ -17,28 +14,43 @@ const TREND_METRICS = [
 
 const TREND_DEMO = [42, 70, 56, 88, 62, 76, 53, 79, 64, 90, 72, 81, 58, 66, 84, 71, 69, 77, 60, 85, 73, 68, 91, 63];
 
-// Ported from the V23.3 mockup's `.performance-card` (ag-grid in the source
-// file) and `.trend-card` (a hand-rolled SVG line chart). ag-grid isn't a
-// dependency of this app and adding it is a separate call from a UI port, so
-// the grid renders as a plain table — same rows/columns/visual language, real
-// selection wired to the history store's selection where devices exist.
+// Ported from the V23.3 mockup's `.performance-card` (ag-grid Community in
+// the source file) and `.trend-card` (a hand-rolled SVG line chart). The grid
+// is real ag-grid (see agGridSetup.js for the shared theme/module setup),
+// fed by the same buildPerformanceRows() the xlsx export uses so the two
+// can't drift apart. Selection is wired to the history store's real
+// selection where devices exist.
 export default function PerformanceTrend({ devices, selection, setSelection, mode, onOpenSpeedPlan, onOpenRoadName }) {
-  const rows = useMemo(() => {
-    if (!devices.length) return DEMO_ROWS.map((row) => ({ ...row, deviceId: row.unit }));
-    return devices.map((d, i) => ({
-      deviceId: d.deviceId,
-      unit: d.unitNo,
-      loader: DEMO_ROWS[i % DEMO_ROWS.length].loader,
-      ritase: DEMO_ROWS[i % DEMO_ROWS.length].ritase,
-      cycle: DEMO_ROWS[i % DEMO_ROWS.length].cycle,
-      loaded: DEMO_ROWS[i % DEMO_ROWS.length].loaded,
-      empty: DEMO_ROWS[i % DEMO_ROWS.length].empty,
-      speed: DEMO_ROWS[i % DEMO_ROWS.length].speed,
-    }));
-  }, [devices]);
+  const rows = useMemo(() => buildPerformanceRows(devices), [devices]);
 
   const [search, setSearch] = useState('');
   const filtered = rows.filter((r) => `${r.unit} ${r.loader}`.toLowerCase().includes(search.trim().toLowerCase()));
+
+  const columnDefs = useMemo(() => [
+    {
+      field: 'unit',
+      headerName: 'Unit',
+      minWidth: 130,
+      checkboxSelection: true,
+      headerCheckboxSelection: true,
+    },
+    { field: 'loader', headerName: 'Loader', width: 110 },
+    { field: 'ritase', headerName: 'Ritase', width: 95 },
+    { field: 'cycle', headerName: 'Avg Cycle', width: 110, valueFormatter: (p) => `${p.value} min` },
+    { field: 'loaded', headerName: 'Muatan', width: 100, valueFormatter: (p) => `${p.value} km` },
+    { field: 'empty', headerName: 'Kosongan', width: 105, valueFormatter: (p) => `${p.value} km` },
+    { field: 'speed', headerName: 'Speed', width: 100, valueFormatter: (p) => `${p.value} km/j` },
+  ], []);
+
+  const onSelectionChanged = useCallback((event) => {
+    setSelection(event.api.getSelectedRows().map((r) => r.deviceId));
+  }, [setSelection]);
+
+  const onGridReady = useCallback((event) => {
+    event.api.forEachNode((node) => {
+      if (selection.includes(node.data.deviceId)) node.setSelected(true, false, 'api');
+    });
+  }, [selection]);
 
   const [activeMetrics, setActiveMetrics] = useState(() => new Set(TREND_METRICS.filter(([, , d]) => d).map(([key]) => key)));
   function toggleMetric(key) {
@@ -76,33 +88,19 @@ export default function PerformanceTrend({ devices, selection, setSelection, mod
             <input className="grid-search" type="search" placeholder="Cari loader atau unit…" value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
         </div>
-        <div id="performanceGrid">
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>{['Unit', 'Loader', 'Ritase', 'Avg Cycle', 'Muatan', 'Kosongan', 'Speed'].map((h) => <th key={h}>{h}</th>)}</tr>
-              </thead>
-              <tbody>
-                {filtered.map((row) => (
-                  <tr
-                    key={row.unit}
-                    className={selection.includes(row.deviceId) ? 'selected' : ''}
-                    onClick={() => setSelection(
-                      selection.includes(row.deviceId) ? selection.filter((x) => x !== row.deviceId) : [...selection, row.deviceId],
-                    )}
-                  >
-                    <td><input type="checkbox" readOnly checked={selection.includes(row.deviceId)} /> {row.unit}</td>
-                    <td>{row.loader}</td>
-                    <td>{row.ritase}</td>
-                    <td>{row.cycle} min</td>
-                    <td>{row.loaded} km</td>
-                    <td>{row.empty} km</td>
-                    <td>{row.speed} km/j</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <div id="performanceGrid" style={{ height: 260, width: '100%' }}>
+          <AgGridReact
+            theme={v4GridTheme}
+            rowData={filtered}
+            columnDefs={columnDefs}
+            defaultColDef={v4DefaultColDef}
+            getRowId={(p) => p.data.deviceId}
+            rowSelection={{ mode: 'multiRow', checkboxes: true, headerCheckbox: true }}
+            rowHeight={33}
+            headerHeight={35}
+            onSelectionChanged={onSelectionChanged}
+            onGridReady={onGridReady}
+          />
         </div>
       </section>
 

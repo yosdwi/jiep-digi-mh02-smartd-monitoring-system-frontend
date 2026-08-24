@@ -44,10 +44,13 @@ const CYCLE_PHASE_DEMO = [
 // maplibre/deck.gl CDN bootstrap, which would otherwise instantiate a second
 // map engine disconnected from real telemetry.
 //
-// What's NOT ported: the GIS vertex-editing engine, ag-grid, and xlsx/jszip
-// export are visual shells only (open/close, layout, copy) — no drag-editing,
-// no real export, no persisted draft versions. See the fork report in the
-// PR/commit description for the full list.
+// GIS vertex-editing (GisWorkspace.jsx), the Performance/Duration ag-grid
+// tables (agGridSetup.js), and ZIP export (Modals.jsx, reusing v3's real
+// export-job service) are now real, not shells. What's still local-only
+// because monitor-system has no endpoint for it yet: GIS geometry
+// persistence, speed-plan values, speed-segment version history, and
+// road-name assignment — each is marked `TODO(backend)` at its exact call
+// site instead of guessing an API.
 export default function AnalysisWorkspaceV4() {
   useMockupStyles();
 
@@ -182,7 +185,7 @@ export default function AnalysisWorkspaceV4() {
         ) : null}
       </div>
 
-      <ExportModal open={exportOpen} onClose={() => setExportOpen(false)} applied={applied} />
+      <ExportModal open={exportOpen} onClose={() => setExportOpen(false)} applied={applied} devices={devices} />
       <SpeedPlanModal open={speedPlanOpen} onClose={() => setSpeedPlanOpen(false)} />
       <SpeedHistoryModal open={speedHistoryOpen} onClose={() => setSpeedHistoryOpen(false)} />
       <SpeedRoadModal open={speedRoadOpen} onClose={() => setSpeedRoadOpen(false)} />

@@ -1,23 +1,132 @@
 // Ported from the V23.3 mockup's secondary dialogs (export, speed plan edit,
-// speed history, road name assignment, auto-suggest wizard). These are
-// static/visual shells: layout and copy match the mockup, but the actions
-// they describe (ZIP export via xlsx/jszip, draft version history, speed
-// segment persistence) have no backend in this app yet, so primary buttons
-// just close the dialog. See the fork report for what's intentionally not
-// wired up.
+// speed history, road name assignment, auto-suggest wizard).
+//
+// ExportModal is real: it reuses the SAME export-job backend the v3 History
+// Workspace's ExportDialog already calls (src/v3/services/exportApi.js →
+// /Monitoring/api/ExportV3/*) for the trace file, builds the performance
+// summary client-side with the real `xlsx` package from the same rows the
+// on-screen Performance grid shows, and bundles both into one .zip with
+// `jszip` — matching the mockup's "one ZIP" framing without inventing a
+// bundling endpoint the backend doesn't have.
+//
+// The other four dialogs (speed plan, speed history, road name, auto
+// suggest) describe backend actions monitor-system has no endpoint for yet
+// (persisting a speed plan value, versioned draft history, road-name
+// assignment) — those stay visual shells; each has a TODO(backend) at its
+// primary action.
+import { useCallback, useState } from 'react';
+import * as XLSX from 'xlsx';
+import JSZip from 'jszip';
+import { createExport, waitForExport, cancelExport, getExportOptions } from '../v3/services/exportApi';
+import { buildPerformanceRows } from './performanceRows';
 
-export function ExportModal({ open, onClose, applied }) {
+function buildPerformanceWorkbookBlob(devices) {
+  const rows = buildPerformanceRows(devices).map((r) => ({
+    Unit: r.unit,
+    Loader: r.loader,
+    Ritase: r.ritase,
+    'Avg Cycle (min)': r.cycle,
+    'Jarak Muatan (km)': r.loaded,
+    'Jarak Kosongan (km)': r.empty,
+    'Actual Speed (km/j)': r.speed,
+  }));
+  const sheet = XLSX.utils.json_to_sheet(rows);
+  const book = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(book, sheet, 'Performance');
+  const arrayBuffer = XLSX.write(book, { type: 'array', bookType: 'xlsx' });
+  return new Blob([arrayBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+}
+
+export function ExportModal({ open, onClose, applied, devices }) {
+  const [phase, setPhase] = useState('idle'); // idle | preparing | zipping | ready | error
+  const [progress, setProgress] = useState(null);
+  const [error, setError] = useState(null);
+  const [jobId, setJobId] = useState(null);
+  const [zipUrl, setZipUrl] = useState(null);
+
+  const reset = useCallback(() => {
+    setPhase('idle'); setProgress(null); setError(null); setJobId(null);
+    if (zipUrl) URL.revokeObjectURL(zipUrl);
+    setZipUrl(null);
+  }, [zipUrl]);
+
+  const close = useCallback(() => {
+    if (jobId) cancelExport(jobId);
+    reset();
+    onClose?.();
+  }, [jobId, reset, onClose]);
+
+  const start = useCallback(async () => {
+    if (!applied?.units?.length) return;
+    setPhase('preparing');
+    setError(null);
+    try {
+      // Same catalogue the v3 ExportDialog reads from — never hardcode column
+      // keys here, the service is the source of truth for what it accepts.
+      const options = await getExportOptions();
+      const defaultColumns = options.columns.filter((c) => c.defaultOn).map((c) => c.key);
+      const format = options.formats.some((f) => f.key === 'xlsx') ? 'xlsx' : options.formats[0]?.key;
+
+      const traceJob = await createExport({
+        district: 'BRCB',
+        unitNos: applied.units,
+        startDateTime: applied.start,
+        endDateTime: applied.end,
+        intervalSeconds: Number(applied.interval) || 0,
+        columns: defaultColumns,
+        coordinates: 'utm',
+        format,
+        fileName: 'cycle-time-trace',
+      });
+      setJobId(traceJob.id);
+      const finished = await waitForExport(traceJob.id, { onProgress: setProgress });
+      if (finished.state !== 'ready') {
+        setError(finished.message || 'Export trace gagal.');
+        setPhase('error');
+        return;
+      }
+
+      setPhase('zipping');
+      const traceRes = await fetch(`/Monitoring${finished.downloadUrl}`);
+      if (!traceRes.ok) throw new Error(`Gagal mengunduh trace (HTTP ${traceRes.status})`);
+      const traceBlob = await traceRes.blob();
+      const perfBlob = buildPerformanceWorkbookBlob(devices);
+
+      const zip = new JSZip();
+      zip.file(finished.fileName || 'cycle-time-trace.xlsx', traceBlob);
+      zip.file('cycle-time-performance.xlsx', perfBlob);
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+
+      setZipUrl(URL.createObjectURL(zipBlob));
+      setPhase('ready');
+    } catch (err) {
+      setError(err.message || String(err));
+      setPhase('error');
+    }
+  }, [applied, devices]);
+
+  const download = useCallback(() => {
+    if (!zipUrl) return;
+    const link = document.createElement('a');
+    link.href = zipUrl;
+    link.download = `cycle-time-export-${(applied?.start || '').slice(0, 10)}.zip`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  }, [zipUrl, applied]);
+
   if (!open) return null;
+  const busy = phase === 'preparing' || phase === 'zipping';
   return (
     <div className="export-modal" role="dialog" aria-modal="true">
-      <div className="export-backdrop" onClick={onClose} />
+      <div className="export-backdrop" onClick={close} />
       <section className="export-dialog">
         <header className="export-head">
           <div>
             <div className="export-title">Export Cycle Time</div>
             <div className="export-subtitle">Satu ZIP, mengikuti filter yang sedang aktif.</div>
           </div>
-          <button type="button" className="export-close" aria-label="Tutup" onClick={onClose}>✕</button>
+          <button type="button" className="export-close" aria-label="Tutup" onClick={close}>✕</button>
         </header>
         <div className="export-body">
           <div className="export-context">
@@ -30,18 +139,34 @@ export function ExportModal({ open, onClose, applied }) {
           <div className="export-file-list">
             <div className="export-file-row">
               <span className="export-file-icon">XLSX</span>
-              <div><strong>cycle-time-trace.xlsx</strong><small>Waktu · Loader · Unit · Lat/Lon · UTM X/Y · Speed</small></div>
+              <div><strong>cycle-time-trace.xlsx</strong><small>Waktu · Loader · Unit · Lat/Lon · UTM X/Y · Speed — dari export job monitor-system</small></div>
             </div>
             <div className="export-file-row">
               <span className="export-file-icon">XLSX</span>
-              <div><strong>cycle-time-performance.xlsx</strong><small>Performance loader/unit + data Trend Performance</small></div>
+              <div><strong>cycle-time-performance.xlsx</strong><small>Performance loader/unit dari grid yang sedang ditampilkan</small></div>
             </div>
           </div>
-          <div className="export-note">Loader dibiarkan kosong jika assignment tidak tersedia. Trace mengikuti interval dan rentang waktu aktif.</div>
+          {phase === 'preparing' || phase === 'zipping' ? (
+            <div className="export-note">
+              {phase === 'preparing'
+                ? `Menyiapkan trace… ${progress?.rowsWritten ? `${progress.rowsWritten} baris` : ''}`
+                : 'Membuat berkas performance dan menyusun ZIP…'}
+            </div>
+          ) : error ? (
+            <div className="export-note" style={{ color: 'var(--danger, #b42318)' }}>{error}</div>
+          ) : (
+            <div className="export-note">Loader dibiarkan kosong jika assignment tidak tersedia. Trace mengikuti interval dan rentang waktu aktif.</div>
+          )}
         </div>
         <footer className="export-footer">
-          <button type="button" className="btn" onClick={onClose}>Batal</button>
-          <button type="button" className="btn primary" onClick={onClose}>Export ZIP</button>
+          <button type="button" className="btn" onClick={close}>{phase === 'ready' ? 'Tutup' : 'Batal'}</button>
+          {phase === 'ready' ? (
+            <button type="button" className="btn primary" onClick={download}>Unduh ZIP</button>
+          ) : (
+            <button type="button" className="btn primary" disabled={busy || !applied?.units?.length} onClick={start}>
+              {busy ? 'Menyiapkan…' : 'Export ZIP'}
+            </button>
+          )}
         </footer>
       </section>
     </div>
@@ -74,6 +199,8 @@ export function SpeedPlanModal({ open, onClose }) {
       footer={(
         <footer className="speed-modal-footer">
           <button type="button" className="btn" onClick={onClose}>Batal</button>
+          {/* TODO(backend): persist the Speed Plan value once monitor-system
+              exposes a speed-segment-plan endpoint. Closes without saving. */}
           <button type="button" className="btn primary" onClick={onClose}>Save to Draft</button>
         </footer>
       )}
@@ -97,6 +224,8 @@ export function SpeedPlanModal({ open, onClose }) {
   );
 }
 
+// TODO(backend): the rows below are static demo data — monitor-system has no
+// speed-segment version-history endpoint yet to list real draft versions.
 export function SpeedHistoryModal({ open, onClose }) {
   return (
     <SpeedModalShell open={open} onClose={onClose} title="Speed Segment Version History" meta="Apply tidak menimpa versi lama." wide footer={(
@@ -119,6 +248,8 @@ export function SpeedRoadModal({ open, onClose }) {
     <SpeedModalShell open={open} onClose={onClose} title="Assign Road Name" meta="2 segment dipilih" footer={(
       <footer className="speed-modal-footer">
         <button type="button" className="btn" onClick={onClose}>Batal</button>
+        {/* TODO(backend): persist the road-name assignment once
+            monitor-system exposes an endpoint for it. Closes without saving. */}
         <button type="button" className="btn primary" onClick={onClose}>Assign to Selected</button>
       </footer>
     )}

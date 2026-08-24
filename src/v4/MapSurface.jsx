@@ -1,5 +1,8 @@
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import { AgGridReact } from 'ag-grid-react';
 import MapWorkspace from '../v3/map/MapWorkspace';
+import { v4GridTheme, v4DefaultColDef } from './agGridSetup';
+import { useGisDraft, GisPanels } from './GisWorkspace';
 
 const LAYER_TOGGLES = [
   ['trace', 'Dot trace historis'],
@@ -36,11 +39,18 @@ export default function MapSurface({
 
   const loading = status.state === 'loading' || status.state === 'resolving' || status.state === 'queued' || status.state === 'running';
 
+  const gis = useGisDraft(mode === 'gis');
+  const effectiveLayers = useMemo(
+    () => (mode === 'gis' && gis.layer ? [...layers, gis.layer] : layers),
+    [layers, mode, gis.layer],
+  );
+  const effectiveTool = mode === 'gis' && gis.editing ? 'pan' : (tool === 'measure' ? 'measure' : 'pan');
+
   return (
     <section className="workspace">
       <article className="card map-card">
         <div className="map-shell">
-          <MapWorkspace ref={mapRef} layers={layers} cameraCommand={camera} tool={tool === 'measure' ? 'measure' : 'pan'} onZoomChange={() => {}} />
+          <MapWorkspace ref={mapRef} layers={effectiveLayers} cameraCommand={camera} tool={effectiveTool} onZoomChange={() => {}} />
 
           <div className="map-tools">
             <button type="button" className={`toolbtn${tool === 'pan' ? ' active' : ''}`} title="Pan / geser peta" onClick={() => setTool('pan')}>✋</button>
@@ -79,7 +89,7 @@ export default function MapSurface({
           {mode === 'datalog' ? (
             <DataLogSurface view={dataLogView} setView={setDataLogView} loaded={dataLogLoaded} setLoaded={setDataLogLoaded} />
           ) : null}
-          {mode === 'gis' ? <GisSurface /> : null}
+          {mode === 'gis' ? <GisPanels {...gis} /> : null}
 
           {mode === 'cycle' ? <CycleRibbon phases={cyclePhases} /> : null}
           {mode === 'speed' ? <SpeedRibbon state={speedState} setState={setSpeedState} onOpenHistory={onOpenSpeedHistory} /> : null}
@@ -191,9 +201,17 @@ const DURATION_EVENTS = [
   { unit: 'DT5401', area: 'Pit Utara', minutes: 12 },
 ];
 
+const DURATION_COLUMN_DEFS = [
+  { field: 'area', headerName: 'Pit Stop Area', minWidth: 120, flex: 1 },
+  { field: 'unit', headerName: 'Unit', width: 95 },
+  { field: 'minutes', headerName: 'Duration', width: 90, valueFormatter: (p) => `${p.value}m` },
+  { field: 'review', headerName: 'Review', width: 80 },
+];
+
 function DurationSurface({ threshold, setThreshold }) {
   const [filter, setFilter] = useState('all');
-  const events = filter === 'review' ? DURATION_EVENTS.filter((e) => e.minutes > Number(threshold)) : DURATION_EVENTS;
+  const rows = useMemo(() => DURATION_EVENTS.map((e) => ({ ...e, review: e.minutes > Number(threshold) ? 'Review' : '' })), [threshold]);
+  const events = filter === 'review' ? rows.filter((e) => e.minutes > Number(threshold)) : rows;
   const total = DURATION_EVENTS.reduce((sum, e) => sum + e.minutes, 0);
   const reviewCount = DURATION_EVENTS.filter((e) => e.minutes > Number(threshold)).length;
   return (
@@ -224,12 +242,17 @@ function DurationSurface({ threshold, setThreshold }) {
           <button type="button" className={filter === 'all' ? 'active' : ''} onClick={() => setFilter('all')}>Semua</button>
           <button type="button" className={filter === 'review' ? 'active' : ''} onClick={() => setFilter('review')}>Review</button>
         </div>
-        <div className="duration-event-list-v20">
-          {events.map((e) => (
-            <p key={`${e.unit}-${e.area}`} style={{ padding: '10px 12px', margin: 0, borderBottom: '1px solid #eef1f4', fontSize: 13 }}>
-              {e.unit} · {e.area} · {e.minutes}m{e.minutes > Number(threshold) ? ' · Review' : ''}
-            </p>
-          ))}
+        <div className="duration-event-list-v20" style={{ height: 260 }}>
+          <AgGridReact
+            theme={v4GridTheme}
+            rowData={events}
+            columnDefs={DURATION_COLUMN_DEFS}
+            defaultColDef={v4DefaultColDef}
+            getRowId={(p) => `${p.data.unit}-${p.data.area}`}
+            getRowClass={(p) => (p.data.review ? 'duration-review-row' : '')}
+            rowHeight={33}
+            headerHeight={35}
+          />
         </div>
       </aside>
 
@@ -326,27 +349,3 @@ function DataLogSurface({ view, setView, loaded, setLoaded }) {
   );
 }
 
-const GIS_LAYERS = ['Haul Road', 'Speed Corridor', 'Pit Stop Area', 'District Boundary', 'Loader Estimate'];
-
-function GisSurface() {
-  return (
-    <>
-      <aside style={{ position: 'absolute', zIndex: 5, top: 10, left: 10, width: 270, background: '#fff', border: '1px solid var(--border)', borderRadius: 10, padding: 12 }}>
-        <strong>Geometry Catalog</strong>
-        <p className="small">Operational Geometry</p>
-        {GIS_LAYERS.map((name) => (
-          <label key={name} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #eef1f4', fontSize: 13 }}>
-            <span>◉ {name}</span>
-            <input type="checkbox" defaultChecked />
-          </label>
-        ))}
-      </aside>
-      <aside style={{ position: 'absolute', zIndex: 5, top: 10, right: 58, width: 286, background: '#fff', border: '1px solid var(--border)', borderRadius: 10, padding: 12 }}>
-        <strong>Inspector</strong>
-        <p className="small">Pilih feature untuk melihat detail dan evidence.</p>
-        <button type="button" className="btn">Edit Vertex</button>
-        <button type="button" className="btn primary" style={{ marginLeft: 6 }}>Save Geometry</button>
-      </aside>
-    </>
-  );
-}
