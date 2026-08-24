@@ -21,18 +21,8 @@ import Dashboard from './pages/Dashboard';
 import Settings from './pages/Settings';
 import DeviceServiceManagement from './pages/DeviceServiceManagement'; // Menu ber-gate: kelola service device
 import V3Routes from './v3/V3Routes'; // V3: shell + map workspace sendiri, di luar Layout lama
+import AnalysisWorkspaceV4 from './v4/AnalysisWorkspaceV4';
 import useUserStore from './stores/userStore';
-
-// V4 Analysis Workspace is served as-is from public/v4-analysis-workspace.html
-// (a self-contained static prototype, not a React port) so its markup/CSS/JS
-// stay byte-identical to the design file. This route just hands off the full
-// page load to that static asset instead of rendering a React tree.
-function AnalysisWorkspaceV4Redirect() {
-  useEffect(() => {
-    window.location.replace(`${import.meta.env.BASE_URL}v4-analysis-workspace.html`);
-  }, []);
-  return null;
-}
 
 function App() {
   const fetchProfile = useUserStore((state) => state.fetchProfile);
@@ -48,7 +38,7 @@ function App() {
             sits OUTSIDE the legacy <Layout> rather than inside it. Additive:
             nothing below this route changed. */}
         <Route path="/v3/*" element={<V3Routes />} />
-        <Route path="/v4/analysis-workspace" element={<AnalysisWorkspaceV4Redirect />} />
+        <Route path="/v4/analysis-workspace" element={<AnalysisWorkspaceV4 />} />
 
         <Route
           path="/*"
