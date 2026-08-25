@@ -45,8 +45,8 @@ function App() {
           element={
             <Layout>
               <Routes>
-                {/* Default route redirects to live-tracking */}
-                <Route path="/" element={<Navigate to="/live-tracking/live-unit" replace />} />
+                {/* Default route redirects to the V4 analysis workspace preview */}
+                <Route path="/" element={<Navigate to="/v4/analysis-workspace" replace />} />
 
                 {/* New Routes */}
                 <Route path="/live-tracking/live-unit" element={<LiveUnitPeta />} />
