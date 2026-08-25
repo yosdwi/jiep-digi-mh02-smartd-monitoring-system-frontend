@@ -1,23 +1,26 @@
-import { useWorkspace } from "../state/WorkspaceContext";
-
-const MODES = [
-  ["cycle", "Cycle Time"],
-  ["speed", "Speed Analysis"],
-  ["gis", "GIS Workspace"],
-  ["duration", "Duration In Pit"],
-  ["datalog", "Data Log Record"],
-];
-
 export default function AnalysisModeTabs() {
-  const { state, dispatch } = useWorkspace();
   return (
+    <>
     <nav className="analysis-mode-tabs" aria-label="Mode analisis">
-      {MODES.map(([mode, label]) => (
-        <button key={mode} className={`analysis-mode-tab ${state.mode === mode ? "active" : ""}`} type="button" onClick={() => dispatch({ type: "SET_MODE", mode })}>
-          {label}
-        </button>
-      ))}
-      <span className="analysis-mode-context">Shared map · filter · playback</span>
+      <button id="modeCycleBtn" className="analysis-mode-tab active" type="button" data-analysis-mode="cycle">
+        Cycle Time
+      </button>
+      <button id="modeSpeedBtn" className="analysis-mode-tab" type="button" data-analysis-mode="speed">
+        Speed Analysis
+      </button>
+      <button id="modeGisBtn" className="analysis-mode-tab" type="button" data-analysis-mode="gis" disabled title="Generate Speed Draft terlebih dahulu">
+        GIS Workspace
+      </button>
+      <button id="modeDurationBtn" className="analysis-mode-tab" type="button" data-analysis-mode="duration">
+        Duration In Pit
+      </button>
+      <button id="modeDatalogBtn" className="analysis-mode-tab" type="button" data-analysis-mode="datalog">
+        Data Log Record
+      </button>
+      <span className="analysis-mode-context">
+        Shared map · filter · playback
+      </span>
     </nav>
+    </>
   );
 }
